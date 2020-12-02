@@ -11,8 +11,10 @@ fn main() {
         .lines()
         .map(|line| PasswordPolicy::new(line))
         .collect();
-    let valid_passwords_count = policies.iter().filter(|p| p.is_valid()).count();
-    println!("Result of puzzle 1: {}", valid_passwords_count);
+    let valid_password_count = policies.iter().filter(|p| p.is_valid()).count();
+    let valid_password_count2 = policies.iter().filter(|p| p.is_valid2()).count();
+    println!("Result of puzzle 1: {}", valid_password_count);
+    println!("Result of puzzle 2: {}", valid_password_count2);
 }
 
 #[derive(Debug)]
@@ -42,5 +44,10 @@ impl PasswordPolicy {
             .collect();
 
         s.len() >= self.low && s.len() <= self.high
+    }
+
+    fn is_valid2(&self) -> bool {
+        (self.password.chars().nth(self.low - 1).unwrap() == self.letter)
+            ^ (self.password.chars().nth(self.high - 1).unwrap() == self.letter)
     }
 }
