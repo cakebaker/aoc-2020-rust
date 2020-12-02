@@ -16,6 +16,9 @@ fn main() {
 
     let (a, b) = find_expense_pair_with_sum(&expenses, EXPECTED_EXPENSE_SUM);
     println!("Result of puzzle 1: {}", a * b);
+
+    let (c, d, e) = find_expense_triple_with_sum(&expenses, EXPECTED_EXPENSE_SUM);
+    println!("Result of puzzle 2: {}", c * d * e);
 }
 
 fn find_expense_pair_with_sum(expenses: &[i32], expected_sum: i32) -> (i32, i32) {
@@ -24,6 +27,20 @@ fn find_expense_pair_with_sum(expenses: &[i32], expected_sum: i32) -> (i32, i32)
         for j in 1..(length) {
             if expenses[i] + expenses[j] == expected_sum {
                 return (expenses[i], expenses[j]);
+            }
+        }
+    }
+    panic!("Error!");
+}
+
+fn find_expense_triple_with_sum(expenses: &[i32], expected_sum: i32) -> (i32, i32, i32) {
+    let length = expenses.len();
+    for i in 0..(length - 2) {
+        for j in 1..(length - 1) {
+            for k in 2..(length) {
+                if expenses[i] + expenses[j] + expenses[k] == expected_sum {
+                    return (expenses[i], expenses[j], expenses[k]);
+                }
             }
         }
     }
