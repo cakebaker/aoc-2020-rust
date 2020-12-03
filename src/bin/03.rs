@@ -3,6 +3,7 @@ use std::fs;
 
 fn main() {
     const RIGHT_SLOPE: usize = 3;
+    const DEFAULT_DOWN_SLOPE: usize = 1;
     let args: Vec<String> = env::args().collect();
     let filename = &args[1];
     let file_content =
@@ -10,19 +11,39 @@ fn main() {
 
     let map = create_map(file_content);
 
+    println!(
+        "Result of puzzle 1: {}",
+        count_trees(&map, RIGHT_SLOPE, DEFAULT_DOWN_SLOPE)
+    );
+
+    let slopes = vec![
+        (1, DEFAULT_DOWN_SLOPE),
+        (3, DEFAULT_DOWN_SLOPE),
+        (5, DEFAULT_DOWN_SLOPE),
+        (7, DEFAULT_DOWN_SLOPE),
+        (1, 2),
+    ];
+    let tree_counts = slopes
+        .iter()
+        .map(|(right_slope, down_slope)| count_trees(&map, *right_slope, *down_slope));
+
+    println!("Result of puzzle 2: {}", tree_counts.product::<usize>());
+}
+
+fn count_trees(map: &[Vec<Element>], right_slope: usize, down_slope: usize) -> usize {
     let rows = map.len();
     let cols = map[0].len();
     let mut tree_counter = 0;
     let mut col = 0;
 
-    for row in 0..rows {
+    for row in (0..rows).step_by(down_slope) {
         if map[row][col] == Element::Tree {
             tree_counter += 1;
         }
-        col = (col + RIGHT_SLOPE) % cols;
+        col = (col + right_slope) % cols;
     }
 
-    println!("Result of puzzle 1: {}", tree_counter);
+    tree_counter
 }
 
 fn create_map(file_content: String) -> Vec<Vec<Element>> {
