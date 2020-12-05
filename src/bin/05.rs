@@ -11,7 +11,7 @@ fn main() {
 
     let mut seat_ids = get_seat_ids(lines);
     seat_ids.sort_unstable();
-    let highest_seat_id = seat_ids[seat_ids.len() - 1];
+    let highest_seat_id = seat_ids.last().unwrap();
 
     println!("Result of puzzle 1: {}", highest_seat_id);
     println!(
@@ -42,9 +42,8 @@ fn get_seat_ids(lines: Vec<&str>) -> Vec<u32> {
                 _ => '1',
             })
             .collect();
-        let (binary_row, binary_column) = s.split_at(7);
-        let row = u32::from_str_radix(binary_row, 2).unwrap();
-        let column = u32::from_str_radix(binary_column, 2).unwrap();
+        let row = u32::from_str_radix(&s[..7], 2).unwrap();
+        let column = u32::from_str_radix(&s[7..], 2).unwrap();
 
         let seat_id = 8 * row + column;
         seat_ids.push(seat_id);
