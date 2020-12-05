@@ -21,13 +21,10 @@ fn main() {
 }
 
 fn find_free_seat_id(seat_ids: Vec<u32>) -> Option<u32> {
-    let mut previous_id = 0;
-
-    for seat_id in seat_ids {
-        if (seat_id - previous_id) == 2 {
-            return Some(seat_id - 1);
+    for pair in seat_ids.windows(2) {
+        if pair[0] + 1 != pair[1] {
+            return Some(pair[0] + 1);
         }
-        previous_id = seat_id;
     }
     None
 }
