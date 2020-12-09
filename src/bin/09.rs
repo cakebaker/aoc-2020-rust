@@ -14,18 +14,29 @@ fn main() {
         .map(|line| line.parse().unwrap())
         .collect();
 
+    let invalid_number = find_invalid_number(&numbers, PRAEMBEL_LENGTH);
+
+    println!("Result of puzzle 1: {}", invalid_number);
+    println!(
+        "Result of puzzle 2: {}",
+        find_encryption_weakness(&numbers, invalid_number)
+    );
+}
+
+fn find_invalid_number(numbers: &[usize], praembel_length: usize) -> usize {
     let mut sums: Vec<usize> = Vec::new();
-    for i in 0..PRAEMBEL_LENGTH {
-        for j in 1..PRAEMBEL_LENGTH {
+    let mut result: usize = 0;
+
+    for i in 0..praembel_length {
+        for j in 1..praembel_length {
             sums.push(numbers[i] + numbers[i + j]);
         }
     }
 
-    let mut result: usize = 0;
-    for i in PRAEMBEL_LENGTH..numbers.len() {
+    for i in praembel_length..numbers.len() {
         if sums.contains(&numbers[i]) {
-            sums.drain(0..PRAEMBEL_LENGTH - 1);
-            for j in 1..PRAEMBEL_LENGTH {
+            sums.drain(0..praembel_length - 1);
+            for j in 1..praembel_length {
                 sums.push(numbers[i] + numbers[i + j]);
             }
         } else {
@@ -33,6 +44,33 @@ fn main() {
             break;
         }
     }
+    result
+}
 
-    println!("Result of puzzle 1: {}", result);
+fn find_encryption_weakness(numbers: &[usize], invalid_number: usize) -> usize {
+    let mut sum: usize = 0;
+    let mut sum_elements: Vec<usize> = Vec::new();
+    let mut result: usize = 0;
+
+    for i in numbers {
+        if sum + i < invalid_number {
+            sum += i;
+            sum_elements.push(*i);
+        } else {
+            if sum + i > invalid_number {
+                while sum + i > invalid_number {
+                    sum -= sum_elements.remove(0);
+                }
+                sum_elements.push(*i);
+                sum += i;
+            }
+
+            if sum == invalid_number {
+                sum_elements.sort_unstable();
+                result = sum_elements.first().unwrap() + sum_elements.last().unwrap();
+                break;
+            }
+        }
+    }
+    result
 }
