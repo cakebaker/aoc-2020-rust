@@ -5,13 +5,9 @@ fn main() {
     let end_range = 2019;
 
     for i in start_range..end_range {
-        if numbers.iter().filter(|&n| *n == numbers[i]).count() > 1 {
-            match numbers[0..i].iter().rposition(|&n| n == numbers[i]) {
-                Some(index) => numbers.push(i - index),
-                None => numbers.push(0),
-            }
-        } else {
-            numbers.push(0);
+        match numbers[0..i].iter().rposition(|&n| n == numbers[i]) {
+            Some(index) => numbers.push(i - index),
+            None => numbers.push(0),
         }
     }
 
