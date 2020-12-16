@@ -1,5 +1,6 @@
 use std::env;
 use std::fs;
+use std::ops::RangeInclusive;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -7,27 +8,41 @@ fn main() {
     let file_content =
         fs::read_to_string(filename).expect("Something went wrong reading the file!");
 
-    let (all_rules, _, other_tickets) = parse(file_content);
-    let rules: Vec<usize> = all_rules.into_iter().flatten().collect();
-    let tickets: Vec<usize> = other_tickets.into_iter().flatten().collect();
-
-    let ticket_scanning_error_rate: usize = tickets
+    let (rules, _, other_tickets) = parse(file_content);
+    let (_valid_tickets, invalid_tickets): (Vec<Ticket>, Vec<Ticket>) = other_tickets
+        .into_iter()
+        .partition(|ticket| is_valid_ticket(&rules, &ticket));
+    let ticket_scanning_error_rate: usize = invalid_tickets
         .iter()
-        .filter(|&ticket| !is_valid(&rules, *ticket))
+        .map(|ticket| get_invalid_value(&rules, ticket))
         .sum();
+
     println!("Result of puzzle 1: {}", ticket_scanning_error_rate);
 }
 
-fn is_valid(rules: &[usize], ticket: usize) -> bool {
-    for (i, _) in rules.iter().enumerate().step_by(2) {
-        if ticket >= rules[i] && ticket <= rules[i + 1] {
+fn is_valid_ticket(rules: &[Rule], ticket: &Ticket) -> bool {
+    ticket.iter().all(|value| is_valid_value(&rules, *value))
+}
+
+fn is_valid_value(rules: &[Rule], value: usize) -> bool {
+    for (_, ranges) in rules {
+        if ranges[0].contains(&value) || ranges[1].contains(&value) {
             return true;
         }
     }
     false
 }
 
-fn parse(file_content: String) -> (Vec<Vec<usize>>, Vec<usize>, Vec<Vec<usize>>) {
+fn get_invalid_value(rules: &[Rule], ticket: &Ticket) -> usize {
+    for value in ticket {
+        if !is_valid_value(rules, *value) {
+            return *value;
+        }
+    }
+    0
+}
+
+fn parse(file_content: String) -> (Vec<Rule>, Ticket, Vec<Ticket>) {
     let lines: Vec<&str> = file_content.lines().collect();
     let mut rules = Vec::new();
     let mut other_tickets = Vec::new();
@@ -35,12 +50,20 @@ fn parse(file_content: String) -> (Vec<Vec<usize>>, Vec<usize>, Vec<Vec<usize>>)
     let mut i = 0;
     while lines[i] != "" {
         let elems: Vec<&str> = lines[i].split(": ").collect();
+        let field_name = elems[0].to_string();
         let rule: Vec<usize> = elems[1]
             .split(|c| c == '-' || c == ' ')
             .filter(|elem| *elem != "or")
             .map(|elem| elem.parse().unwrap())
             .collect();
-        rules.push(rule);
+
+        let mut ranges = Vec::new();
+        for (i, _) in rule.iter().enumerate().step_by(2) {
+            let range = rule[i]..=rule[i + 1];
+            ranges.push(range);
+        }
+
+        rules.push((field_name, ranges));
         i += 1;
     }
 
@@ -64,3 +87,6 @@ fn parse(file_content: String) -> (Vec<Vec<usize>>, Vec<usize>, Vec<Vec<usize>>)
 
     (rules, my_ticket, other_tickets)
 }
+
+type Rule = (String, Vec<RangeInclusive<usize>>);
+type Ticket = Vec<usize>;
