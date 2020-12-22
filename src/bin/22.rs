@@ -10,14 +10,13 @@ fn main() {
         fs::read_to_string(filename).expect("Something went wrong reading the file!");
 
     let (cards_player_one, cards_player_two) = parse(file_content);
-    let mut winning_score = play_combat(cards_player_one.clone(), cards_player_two.clone());
+    let winning_score_1 = play_combat(cards_player_one.clone(), cards_player_two.clone());
 
-    println!("Result of puzzle 1: {}", winning_score);
+    println!("Result of puzzle 1: {}", winning_score_1);
 
-    let (score_one, score_two) = play_recursive_combat(cards_player_one, cards_player_two);
-    winning_score = if score_one == 0 { score_two } else { score_one };
+    let (_, winning_score_2) = play_recursive_combat(cards_player_one, cards_player_two);
 
-    println!("Result of puzzle 2: {}", winning_score);
+    println!("Result of puzzle 2: {}", winning_score_2);
 }
 
 fn play_combat(a: VecDeque<usize>, b: VecDeque<usize>) -> usize {
@@ -44,25 +43,24 @@ fn play_combat(a: VecDeque<usize>, b: VecDeque<usize>) -> usize {
     }
 }
 
-fn play_recursive_combat(a: VecDeque<usize>, b: VecDeque<usize>) -> (usize, usize) {
+fn play_recursive_combat(a: VecDeque<usize>, b: VecDeque<usize>) -> (Winner, usize) {
     let mut cards_player_one = a;
     let mut cards_player_two = b;
     let mut history = HashSet::new();
 
     loop {
         if history.contains(&cards_player_one) {
-            // player one wins
-            break (1, 0);
+            break (Winner::Player1, 1);
         }
 
         history.insert(cards_player_one.clone());
 
         let card_player_one = cards_player_one.pop_front().unwrap();
         let card_player_two = cards_player_two.pop_front().unwrap();
-        let mut player_one_wins_round = false;
+        let round_winner: Winner;
 
         if cards_player_one.len() >= card_player_one && cards_player_two.len() >= card_player_two {
-            let (score_one, _) = play_recursive_combat(
+            let (sub_game_winner, _) = play_recursive_combat(
                 cards_player_one
                     .iter()
                     .take(card_player_one)
@@ -74,12 +72,16 @@ fn play_recursive_combat(a: VecDeque<usize>, b: VecDeque<usize>) -> (usize, usiz
                     .cloned()
                     .collect(),
             );
-            player_one_wins_round = score_one > 0;
+            round_winner = sub_game_winner;
         } else {
-            player_one_wins_round = card_player_one > card_player_two;
+            round_winner = if card_player_one > card_player_two {
+                Winner::Player1
+            } else {
+                Winner::Player2
+            };
         }
 
-        if player_one_wins_round {
+        if round_winner == Winner::Player1 {
             cards_player_one.push_back(card_player_one);
             cards_player_one.push_back(card_player_two);
         } else {
@@ -88,9 +90,9 @@ fn play_recursive_combat(a: VecDeque<usize>, b: VecDeque<usize>) -> (usize, usiz
         }
 
         if cards_player_one.is_empty() {
-            break (0, calculate_score(cards_player_two));
+            break (Winner::Player2, calculate_score(cards_player_two));
         } else if cards_player_two.is_empty() {
-            break (calculate_score(cards_player_one), 0);
+            break (Winner::Player1, calculate_score(cards_player_one));
         }
     }
 }
@@ -123,4 +125,10 @@ fn parse(file_content: String) -> (VecDeque<usize>, VecDeque<usize>) {
     }
 
     (cards_player_one, cards_player_two)
+}
+
+#[derive(PartialEq)]
+enum Winner {
+    Player1,
+    Player2,
 }
