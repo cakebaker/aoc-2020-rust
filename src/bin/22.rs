@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::collections::VecDeque;
 use std::env;
 use std::fs;
@@ -46,7 +47,7 @@ fn play_combat(a: VecDeque<usize>, b: VecDeque<usize>) -> usize {
 fn play_recursive_combat(a: VecDeque<usize>, b: VecDeque<usize>) -> (usize, usize) {
     let mut cards_player_one = a;
     let mut cards_player_two = b;
-    let mut history = Vec::new();
+    let mut history = HashSet::new();
 
     loop {
         if history.contains(&cards_player_one) {
@@ -54,7 +55,7 @@ fn play_recursive_combat(a: VecDeque<usize>, b: VecDeque<usize>) -> (usize, usiz
             break (1, 0);
         }
 
-        history.push(cards_player_one.clone());
+        history.insert(cards_player_one.clone());
 
         let card_player_one = cards_player_one.pop_front().unwrap();
         let card_player_two = cards_player_two.pop_front().unwrap();
