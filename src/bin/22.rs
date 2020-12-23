@@ -106,23 +106,22 @@ fn calculate_score(cards: VecDeque<usize>) -> usize {
 }
 
 fn parse(file_content: String) -> (VecDeque<usize>, VecDeque<usize>) {
-    let lines: Vec<&str> = file_content.lines().collect();
-    let mut cards_player_one = VecDeque::new();
-    let mut cards_player_two = VecDeque::new();
+    let mut iter = file_content.split("\n\n");
 
-    let mut i = 1;
-
-    while lines[i] != "" {
-        cards_player_one.push_back(lines[i].parse().unwrap());
-        i += 1;
-    }
-
-    i += 2;
-
-    while i < lines.len() {
-        cards_player_two.push_back(lines[i].parse().unwrap());
-        i += 1;
-    }
+    let cards_player_one = iter
+        .next()
+        .unwrap()
+        .lines()
+        .skip(1)
+        .map(|elem| elem.parse().unwrap())
+        .collect();
+    let cards_player_two = iter
+        .next()
+        .unwrap()
+        .lines()
+        .skip(1)
+        .map(|elem| elem.parse().unwrap())
+        .collect();
 
     (cards_player_one, cards_player_two)
 }
