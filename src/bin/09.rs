@@ -2,7 +2,7 @@ use std::env;
 use std::fs;
 
 fn main() {
-    const PRAEMBEL_LENGTH: usize = 25;
+    const PREAMBLE_LENGTH: usize = 25;
 
     let args: Vec<String> = env::args().collect();
     let filename = &args[1];
@@ -14,7 +14,7 @@ fn main() {
         .map(|line| line.parse().unwrap())
         .collect();
 
-    let invalid_number = find_invalid_number(&numbers, PRAEMBEL_LENGTH);
+    let invalid_number = find_invalid_number(&numbers, PREAMBLE_LENGTH);
 
     println!("Result of puzzle 1: {}", invalid_number);
     println!(
@@ -23,20 +23,20 @@ fn main() {
     );
 }
 
-fn find_invalid_number(numbers: &[usize], praembel_length: usize) -> usize {
+fn find_invalid_number(numbers: &[usize], preamble_length: usize) -> usize {
     let mut sums: Vec<usize> = Vec::new();
     let mut result: usize = 0;
 
-    for i in 0..praembel_length {
-        for j in 1..praembel_length {
+    for i in 0..preamble_length {
+        for j in 1..preamble_length {
             sums.push(numbers[i] + numbers[i + j]);
         }
     }
 
-    for i in praembel_length..numbers.len() {
+    for i in preamble_length..numbers.len() {
         if sums.contains(&numbers[i]) {
-            sums.drain(0..praembel_length - 1);
-            for j in 1..praembel_length {
+            sums.drain(0..preamble_length - 1);
+            for j in 1..preamble_length {
                 sums.push(numbers[i] + numbers[i + j]);
             }
         } else {
