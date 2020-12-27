@@ -3,6 +3,9 @@ use std::fs;
 
 fn main() {
     const INITIAL_DIRECTION: isize = 90;
+    const INITIAL_X: isize = 0;
+    const INITIAL_Y: isize = 0;
+
     let args: Vec<String> = env::args().collect();
     let filename = &args[1];
     let file_content =
@@ -10,31 +13,47 @@ fn main() {
 
     let actions: Vec<Action> = file_content.lines().map(|line| parse(line)).collect();
 
-    let mut direction = FacingDirection::new(INITIAL_DIRECTION);
-    let mut east_west: isize = 0;
-    let mut north_south: isize = 0;
+    let end_position = get_location(
+        &actions,
+        Position {
+            x: INITIAL_X,
+            y: INITIAL_Y,
+        },
+        FacingDirection::new(INITIAL_DIRECTION),
+    );
 
-    for action in &actions {
+    println!(
+        "Result of puzzle 1: {}",
+        end_position.x.abs() + end_position.y.abs()
+    );
+}
+
+fn get_location(
+    actions: &[Action],
+    start_position: Position,
+    mut direction: FacingDirection,
+) -> Position {
+    let mut x = start_position.x;
+    let mut y = start_position.y;
+
+    for action in actions {
         match action {
-            Action::North(v) => north_south += v,
-            Action::South(v) => north_south -= v,
-            Action::East(v) => east_west += v,
-            Action::West(v) => east_west -= v,
+            Action::North(v) => y += v,
+            Action::South(v) => y -= v,
+            Action::East(v) => x += v,
+            Action::West(v) => x -= v,
             Action::Left(v) => direction.turn_left(*v),
             Action::Right(v) => direction.turn_right(*v),
             Action::Forward(v) => match direction.current() {
-                Direction::North => north_south += v,
-                Direction::South => north_south -= v,
-                Direction::East => east_west += v,
-                Direction::West => east_west -= v,
+                Direction::North => y += v,
+                Direction::South => y -= v,
+                Direction::East => x += v,
+                Direction::West => x -= v,
             },
         };
     }
 
-    println!(
-        "Result of puzzle 1: {}",
-        east_west.abs() + north_south.abs()
-    );
+    Position { x, y }
 }
 
 fn parse(s: &str) -> Action {
@@ -48,7 +67,8 @@ fn parse(s: &str) -> Action {
         "W" => Action::West(value),
         "L" => Action::Left(value),
         "R" => Action::Right(value),
-        _ => Action::Forward(value),
+        "F" => Action::Forward(value),
+        _ => panic!("Unexpected char!"),
     }
 }
 
@@ -69,6 +89,11 @@ enum Direction {
     South,
     East,
     West,
+}
+
+struct Position {
+    x: isize,
+    y: isize,
 }
 
 struct FacingDirection {
