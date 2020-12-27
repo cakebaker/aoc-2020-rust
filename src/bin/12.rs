@@ -3,8 +3,10 @@ use std::fs;
 
 fn main() {
     const INITIAL_DIRECTION: isize = 90;
-    const INITIAL_X: isize = 0;
-    const INITIAL_Y: isize = 0;
+    const INITIAL_SHIP_X: isize = 0;
+    const INITIAL_SHIP_Y: isize = 0;
+    const INITIAL_WAYPOINT_X: isize = 10;
+    const INITIAL_WAYPOINT_Y: isize = 1;
 
     let args: Vec<String> = env::args().collect();
     let filename = &args[1];
@@ -12,19 +14,32 @@ fn main() {
         fs::read_to_string(filename).expect("Something went wrong reading the file!");
 
     let actions: Vec<Action> = file_content.lines().map(|line| parse(line)).collect();
+    let initial_ship_position = Position {
+        x: INITIAL_SHIP_X,
+        y: INITIAL_SHIP_Y,
+    };
 
     let end_position = get_location(
         &actions,
-        Position {
-            x: INITIAL_X,
-            y: INITIAL_Y,
-        },
+        initial_ship_position,
         FacingDirection::new(INITIAL_DIRECTION),
     );
+
+    let initial_waypoint_position = Position {
+        x: INITIAL_WAYPOINT_X,
+        y: INITIAL_WAYPOINT_Y,
+    };
+    let ship_position =
+        get_location_using_waypoint(&actions, initial_ship_position, initial_waypoint_position);
 
     println!(
         "Result of puzzle 1: {}",
         end_position.x.abs() + end_position.y.abs()
+    );
+
+    println!(
+        "Result of puzzle 2: {}",
+        ship_position.x.abs() + ship_position.y.abs()
     );
 }
 
@@ -54,6 +69,61 @@ fn get_location(
     }
 
     Position { x, y }
+}
+
+fn get_location_using_waypoint(
+    actions: &[Action],
+    mut ship: Position,
+    mut waypoint: Position,
+) -> Position {
+    for action in actions {
+        match action {
+            Action::North(v) => waypoint.y += v,
+            Action::South(v) => waypoint.y -= v,
+            Action::East(v) => waypoint.x += v,
+            Action::West(v) => waypoint.x -= v,
+            Action::Left(v) => match v {
+                90 => {
+                    let temp = waypoint.x;
+                    waypoint.x = 0 - waypoint.y;
+                    waypoint.y = temp;
+                }
+                180 => {
+                    waypoint.x = 0 - waypoint.x;
+                    waypoint.y = 0 - waypoint.y;
+                }
+                270 => {
+                    let temp = waypoint.x;
+                    waypoint.x = waypoint.y;
+                    waypoint.y = 0 - temp;
+                }
+                _ => panic!("Error"),
+            },
+            Action::Right(v) => match v {
+                90 => {
+                    let temp = waypoint.x;
+                    waypoint.x = waypoint.y;
+                    waypoint.y = 0 - temp;
+                }
+                180 => {
+                    waypoint.x = 0 - waypoint.x;
+                    waypoint.y = 0 - waypoint.y;
+                }
+                270 => {
+                    let temp = waypoint.x;
+                    waypoint.x = 0 - waypoint.y;
+                    waypoint.y = temp;
+                }
+                _ => panic!("Error"),
+            },
+            Action::Forward(v) => {
+                ship.x += v * waypoint.x;
+                ship.y += v * waypoint.y;
+            }
+        }
+    }
+
+    ship
 }
 
 fn parse(s: &str) -> Action {
@@ -91,6 +161,7 @@ enum Direction {
     West,
 }
 
+#[derive(Clone, Copy)]
 struct Position {
     x: isize,
     y: isize,
